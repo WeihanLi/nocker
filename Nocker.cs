@@ -16,6 +16,12 @@ public class Nocker
 
     private static readonly HttpClient HttpClient = new();
 
+    public Nocker()
+    {
+        if (!Directory.Exists(BtrfsPath))
+            Directory.CreateDirectory(BtrfsPath);
+    }
+
     public void Help()
     {
         Console.WriteLine("nocker:");
