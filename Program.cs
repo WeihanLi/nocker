@@ -14,7 +14,7 @@ var commandName = args[0];
 var method = Nocker.Methods.FirstOrDefault(x => x.Name.EqualsIgnoreCase(commandName));
 if (method is null)
 {
-    Console.WriteLine($"Not supported command {commandName}");
+    WriteLineWithColor($"Not supported command {commandName}", ConsoleColor.Red);
     return -1;
 }
 
@@ -32,6 +32,21 @@ try
 }
 catch (Exception e)
 {
-    Console.WriteLine($"Exception when invoke command {e}");
+    WriteLineWithColor($"Exception when invoke command {e}", ConsoleColor.DarkRed);
     return -2;
+}
+
+
+static void WriteLineWithColor(string text, ConsoleColor consoleColor)
+{
+    var originalColor = Console.ForegroundColor;
+    Console.ForegroundColor = ConsoleColor.Red;
+    try
+    {
+        Console.WriteLine(text);
+    }
+    finally
+    {
+        Console.ForegroundColor = originalColor;
+    }        
 }
