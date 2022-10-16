@@ -126,7 +126,7 @@ public class Nocker
             getBlobRequest.SetBearerToken(token);
             using var getBlobResponse = await HttpClient.SendAsync(getBlobRequest);
             await using var blobStream = await getBlobResponse.Content.ReadAsStreamAsync();
-            using var decompressStream = new GZipStream(blobStream, CompressionMode.Decompress);
+            await using var decompressStream = new GZipStream(blobStream, CompressionMode.Decompress);
             await TarFile.ExtractToDirectoryAsync(decompressStream, tmpDirPath, true);
         }
         await File.WriteAllTextAsync(Path.Combine(tmpDirPath, "img.source"), $"{repo}:{tag}");
