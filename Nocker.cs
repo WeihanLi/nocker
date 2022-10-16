@@ -96,7 +96,7 @@ public class Nocker
         using var getManifestsRequest = new HttpRequestMessage(HttpMethod.Get, $"https://registry-1.docker.io/v2/{repo}/manifests/{tag}");
         getManifestsRequest.SetBearerToken(token);
         using var getManifestResponse = await HttpClient.SendAsync(getManifestsRequest);
-        var getManifestResponseObject = await getManifestResponse.ReadJsonResponseAsync<JsonObject>();
+        var getManifestResponseObject = await getManifestResponse.Content.ReadFromJsonAsync<JsonObject>();
         ArgumentNullException.ThrowIfNull(getManifestResponse);
         //
         var layers = getManifestResponseObject!["fsLayers"]!.AsArray()
