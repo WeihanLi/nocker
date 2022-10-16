@@ -99,13 +99,11 @@ public class Nocker
         using var getManifestResponse = await HttpClient.SendAsync(getManifestsRequest);
         var getManifestResponseObject = await getManifestResponse.Content.ReadFromJsonAsync<JsonObject>();
         ArgumentNullException.ThrowIfNull(getManifestResponse);
-        //
+        
         var layers = getManifestResponseObject!["fsLayers"]!.AsArray()
             .Select(l => l!["blobSum"]!.GetValue<string>())
             .ToArray();
-        
-        //
-        var tmpDirPath = $"{TmpPath}/{Guid.NewGuid():N}";
+        var tmpDirPath = Path.Combine(TmpPath, Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tmpDirPath);
         foreach (var layer in layers)
         {
@@ -116,8 +114,7 @@ public class Nocker
             using var getBlobResponse = await HttpClient.SendAsync(getBlobRequest);
             await using var blobStream = await getBlobResponse.Content.ReadAsStreamAsync();
             using var decompressStream = new GZipStream(blobStream, CompressionMode.Decompress);
-            await blobStream.CopyToAsync(decompressStream);                
-            await TarFile.ExtractToDirectoryAsync(decompressStream, tmpDirPath, true);         
+            await TarFile.ExtractToDirectoryAsync(decompressStream, tmpDirPath, true);
         }
         await File.WriteAllTextAsync(Path.Combine(tmpDirPath, "img.source"), $"{repo}:{tag}");
 
