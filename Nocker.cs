@@ -109,23 +109,15 @@ public class Nocker
         Directory.CreateDirectory(tmpDirPath);
         foreach (var layer in layers)
         {
-            var layerFilePath = Path.Combine(tmpDirPath, "layer.tar");
             // https://registry-1.docker.io/v2/weihanli/mdnice/blobs/sha256:xxx
             var blobUrl = $"https://registry-1.docker.io/v2/{repo}/blobs/{layer}";
-            {
-                using var getBlobRequest = new HttpRequestMessage(HttpMethod.Get, blobUrl);
-                getBlobRequest.SetBearerToken(token);
-                using var getBlobResponse = await HttpClient.SendAsync(getBlobRequest);
-                await using var blobStream = await getBlobResponse.Content.ReadAsStreamAsync();
-                await using var fs = File.Create(layerFilePath);
-                await blobStream.CopyToAsync(fs);
-                await fs.FlushAsync();
-                // extract layer
-                using var decompressStream = new GZipStream(fs, CompressionMode.Decompress);
-                await TarFile.ExtractToDirectoryAsync(decompressStream, tmpDirPath, true);
-            }
-            
-            File.Delete(layerFilePath);
+            using var getBlobRequest = new HttpRequestMessage(HttpMethod.Get, blobUrl);
+            getBlobRequest.SetBearerToken(token);
+            using var getBlobResponse = await HttpClient.SendAsync(getBlobRequest);
+            await using var blobStream = await getBlobResponse.Content.ReadAsStreamAsync();
+            using var decompressStream = new GZipStream(blobStream, CompressionMode.Decompress);
+            await blobStream.CopyToAsync(decompressStream);                
+            await TarFile.ExtractToDirectoryAsync(decompressStream, tmpDirPath, true);         
         }
         await File.WriteAllTextAsync(Path.Combine(tmpDirPath, "img.source"), $"{repo}:{tag}");
 
