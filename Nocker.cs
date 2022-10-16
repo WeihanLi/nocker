@@ -3,6 +3,7 @@
 
 using System.ComponentModel;
 using System.Formats.Tar;
+using System.IO.Compression;
 using System.Net.Http.Json;
 using System.Reflection;
 using System.Text.Json.Nodes;
@@ -119,8 +120,11 @@ public class Nocker
                 await using var fs = File.Create(layerFilePath);
                 await blobStream.CopyToAsync(fs);
                 await fs.FlushAsync();
+                // extract layer
+                using var decompressStream = new GZipStream(fs, CompressionMode.Decompress);
+                await TarFile.ExtractToDirectoryAsync(decompressStream, tmpDirPath, true);
             }
-            await TarFile.ExtractToDirectoryAsync(layerFilePath, tmpDirPath, true);
+            
             File.Delete(layerFilePath);
         }
         await File.WriteAllTextAsync(Path.Combine(tmpDirPath, "img.source"), $"{repo}:{tag}");
