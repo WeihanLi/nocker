@@ -105,19 +105,7 @@ public class Nocker
             .Select(l => l!["blobSum"]!.GetValue<string>())
             .ToArray();
         var tmpDirPath = Path.Combine(TmpPath, Guid.NewGuid().ToString("N"));
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            Directory.CreateDirectory(tmpDirPath);
-        }
-        else
-        {
-            // TODO: is the unix file mode right here??
-            Directory.CreateDirectory(tmpDirPath,
-                UnixFileMode.UserRead | UnixFileMode.GroupRead | UnixFileMode.OtherRead
-                | UnixFileMode.UserWrite | UnixFileMode.GroupWrite | UnixFileMode.OtherWrite
-                | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherWrite
-                );
-        }
+        Directory.CreateDirectory(tmpDirPath);
         foreach (var layer in layers)
         {
             // https://registry-1.docker.io/v2/weihanli/mdnice/blobs/sha256:xxx
