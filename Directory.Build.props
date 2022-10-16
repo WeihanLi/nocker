@@ -1,0 +1,32 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>preview</LangVersion>
+    <Version>1.0.0</Version>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageIcon>icon.jpeg</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/WeihanLi/nocker</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/WeihanLi/nocker</PackageProjectUrl>
+    <Product>nocker</Product>
+    <Authors>WeihanLi</Authors>
+    <PackageReleaseNotes>https://github.com/WeihanLi/nocker/tree/main/docs/ReleaseNotes.md</PackageReleaseNotes>
+    <Copyright>Copyright 2022 (c) WeihanLi</Copyright>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#treatwarningsaserrors -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(IsPackable)'=='true'">
+    <None Include="$(MSBuildThisFileDirectory)icon.jpeg" Pack="true" Visible="false" PackagePath=""/>
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" Visible="false" PackagePath=""/>
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="WeihanLi.Common"/>
+    <Using Include="WeihanLi.Common.Helpers"/>
+    <Using Include="WeihanLi.Extensions"/>
+  </ItemGroup>
+</Project>
