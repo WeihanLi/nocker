@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <LangVersion>preview</LangVersion>
-    <Version>1.0.0</Version>
+    <VersionPrefix>1.0.1</VersionPrefix>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageIcon>icon.jpeg</PackageIcon>
