@@ -113,8 +113,17 @@ public class Nocker
             getBlobRequest.SetBearerToken(token);
             using var getBlobResponse = await HttpClient.SendAsync(getBlobRequest);
             await using var blobStream = await getBlobResponse.Content.ReadAsStreamAsync();
-            await using var decompressStream = new GZipStream(blobStream, CompressionMode.Decompress);
-            await TarFile.ExtractToDirectoryAsync(decompressStream, tmpDirPath, true);
+            var layerPath = Path.Combine(tmpDirPath, "layer.tar");
+            var fs = File.OpenWrite(layerPath);
+            await blobStream.CopyToAsync(fs);
+            await fs.FlushAsync();
+            await fs.DisposeAsync();
+            await CommandExecutor.ExecuteCommandAsync($"tar xf {layerPath} -C {tmpDirPath}");
+            File.Delete(layerPath);
+            
+            // https://github.com/dotnet/runtime/issues/77096
+            // await using var decompressStream = new GZipStream(blobStream, CompressionMode.Decompress);
+            // await TarFile.ExtractToDirectoryAsync(decompressStream, tmpDirPath, true);
         }
         await File.WriteAllTextAsync(Path.Combine(tmpDirPath, "img.source"), $"{repo}:{tag}");
 
