@@ -27,7 +27,7 @@ Additionally your system will need to be configured with the following:
 
 ``` sh
 mkdir /var/nocker
-fallocate -l 4G /home/CALDRON.BTRFS
-mkfs.btrfs /home/CALDRON.BTRFS
-mount -o loop /home/CALDRON.BTRFS /var/nocker
+fallocate -l 4G /home/nocker.btrfs
+mkfs.btrfs /home/nocker.btrfs
+mount -o loop /home/nocker.btrfs /var/nocker
 ```
