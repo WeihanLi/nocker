@@ -17,12 +17,6 @@ public class Nocker
 
     private static readonly HttpClient HttpClient = new();
 
-    public Nocker()
-    {
-        if (!Directory.Exists(BtrfsPath))
-            Directory.CreateDirectory(BtrfsPath);
-    }
-
     public void Help()
     {
         Console.WriteLine("nocker:");
@@ -64,7 +58,7 @@ public class Nocker
         if (!Check(uuid))
         {
             CommandExecutor.ExecuteCommand($"btrfs subvolume create {BtrfsPath}/{uuid}");
-            CommandExecutor.ExecuteCommand($"cp -rf --reflick=auto {dir}/* {BtrfsPath}/{uuid}");
+            CommandExecutor.ExecuteCommand($"cp -rf --reflink=auto {dir}/* {BtrfsPath}/{uuid}");
         }
 
         var imgSourcePath = $"{BtrfsPath}/{uuid}/img.source";
@@ -88,6 +82,10 @@ public class Nocker
         Guard.NotNullOrEmpty(image);
         var splits = image.Split(':', 2);
         var (repo, tag) = (splits[0], splits.Length > 1 ? splits[1] : "latest");
+        if (repo.IndexOf('/') <= 0)
+        {
+            repo = $"library/{repo}";
+        }
         var getTokenUrl =
             $"https://auth.docker.io/token?service=registry.docker.io&scope=repository:{repo}:pull";
         var getTokenResponseObject = await HttpClient.GetFromJsonAsync<JsonObject>(getTokenUrl);

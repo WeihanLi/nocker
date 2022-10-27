@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="WeihanLi.Common" Version="1.0.54" />
+    <PackageReference Include="WeihanLi.Common" Version="1.0.55" />
   </ItemGroup>
 
 </Project>
