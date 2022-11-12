@@ -124,6 +124,7 @@ public class Nocker
             // await TarFile.ExtractToDirectoryAsync(decompressStream, tmpDirPath, true);
         }
         await File.WriteAllTextAsync(Path.Combine(tmpDirPath, "img.source"), $"{repo}:{tag}");
+        Console.WriteLine(tmpDirPath);
 
         Init(tmpDirPath);
         Directory.Delete(tmpDirPath, true);
