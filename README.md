@@ -1,5 +1,7 @@
 # nocker
 
+[![nocker](https://img.shields.io/nuget/v/nocker)](https://www.nuget.org/packages/nocker/)
+
 ## Intro
 
 Simplified docker implemented by C# && .NET
