@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <LangVersion>preview</LangVersion>
-    <VersionPrefix>1.0.1</VersionPrefix>
+    <VersionPrefix>1.0.2</VersionPrefix>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageIcon>icon.jpeg</PackageIcon>
@@ -14,7 +14,7 @@
     <Product>nocker</Product>
     <Authors>WeihanLi</Authors>
     <PackageReleaseNotes>https://github.com/WeihanLi/nocker/tree/main/docs/ReleaseNotes.md</PackageReleaseNotes>
-    <Copyright>Copyright 2022 (c) WeihanLi</Copyright>
+    <Copyright>Copyright 2022-2024 (c) WeihanLi</Copyright>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <!-- https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#treatwarningsaserrors -->
