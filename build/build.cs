@@ -18,7 +18,7 @@ args:
 """);
 
 var solutionPath = "./nocker.sln";
-string[] srcProjects = ["./nocker.csproj"];
+string[] srcProjects = ["./nocker/nocker.csproj"];
 string[] testProjects = [];
 
 await BuildProcess.CreateBuilder()
