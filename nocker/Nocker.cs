@@ -52,16 +52,17 @@ public class Nocker
         return Path.Exists(Path.Combine(BtrfsPath, path));
     }
 
-    private string Init(string dir)
+    private string Init(string dir, string repo, string tag)
     {
         if (!Directory.Exists(dir))
             throw new ArgumentException($"directory named {dir} not exits");
 
-        var uuid = $"img_{Random.Shared.Next(42002, 42254)}";
-        if (!Check(uuid))
+        var uuid = $"img_{Random.Shared.Next(30000, 65536)}";
+        while (!Check(uuid))
         {
-            CommandExecutor.ExecuteCommand($"btrfs subvolume create {BtrfsPath}/{uuid}");
-            CommandExecutor.ExecuteCommand($"cp -rf --reflink=auto {dir}/* {BtrfsPath}/{uuid}");
+            Directory.CreateDirectory(Path.Combine(BtrfsPath, uuid));
+            //     CommandExecutor.ExecuteCommand($"btrfs subvolume create {BtrfsPath}/{uuid}");
+            //     CommandExecutor.ExecuteCommand($"cp -rf --reflink=auto {dir}/* {BtrfsPath}/{uuid}");   
         }
 
         var imgSourcePath = $"{BtrfsPath}/{uuid}/img.source";
@@ -83,6 +84,7 @@ public class Nocker
     {
         // https://docs.docker.com/registry/spec/api/#pulling-an-image
         Guard.NotNullOrEmpty(image);
+        Console.WriteLine($"Pulling image {image}");
         var splits = image.Split(':', 2);
         var (repo, tag) = (splits[0], splits.Length > 1 ? splits[1] : "latest");
         if (repo.IndexOf('/') <= 0)
@@ -95,6 +97,7 @@ public class Nocker
         ArgumentNullException.ThrowIfNull(getTokenResponseObject);
         var token = getTokenResponseObject["token"]!.GetValue<string>();
 
+        Console.WriteLine("Trying to get manifests");
         using var getManifestsRequest = new HttpRequestMessage(HttpMethod.Get, $"https://registry-1.docker.io/v2/{repo}/manifests/{tag}");
         getManifestsRequest.SetBearerToken(token);
         using var getManifestResponse = await HttpClient.SendAsync(getManifestsRequest);
@@ -105,32 +108,32 @@ public class Nocker
             .Select(l => l!["blobSum"]!.GetValue<string>())
             .ToArray();
         var tmpDirPath = Path.Combine(TmpPath, Guid.NewGuid().ToString("N"));
+        if (OperatingSystem.IsWindows())
+        {
+            tmpDirPath = tmpDirPath.Replace('\\', '/');
+        }
         Directory.CreateDirectory(tmpDirPath);
+        
         foreach (var layer in layers)
         {
+            Console.WriteLine($"Trying to get layer {layer}");
             // https://registry-1.docker.io/v2/weihanli/mdnice/blobs/sha256:xxx
             var blobUrl = $"https://registry-1.docker.io/v2/{repo}/blobs/{layer}";
             using var getBlobRequest = new HttpRequestMessage(HttpMethod.Get, blobUrl);
             getBlobRequest.SetBearerToken(token);
             using var getBlobResponse = await HttpClient.SendAsync(getBlobRequest);
             await using var blobStream = await getBlobResponse.Content.ReadAsStreamAsync();
-            var layerPath = Path.Combine(tmpDirPath, "layer.tar");
-            var fs = File.OpenWrite(layerPath);
-            await blobStream.CopyToAsync(fs);
-            await fs.FlushAsync();
-            await fs.DisposeAsync();
-            await CommandExecutor.ExecuteCommandAsync($"tar xf {layerPath} -C {tmpDirPath}");
-            File.Delete(layerPath);
-            
-            // https://github.com/dotnet/runtime/issues/77096
-            // await using var decompressStream = new GZipStream(blobStream, CompressionMode.Decompress);
-            // await TarFile.ExtractToDirectoryAsync(decompressStream, tmpDirPath, true);
+            {
+                await using var decompressStream = new GZipStream(blobStream, CompressionMode.Decompress);
+                await TarFile.ExtractToDirectoryAsync(decompressStream, tmpDirPath, true);
+            }
         }
+        
         await File.WriteAllTextAsync(Path.Combine(tmpDirPath, "img.source"), $"{repo}:{tag}");
+        Console.WriteLine("image downloaded");
         Console.WriteLine(tmpDirPath);
 
-        Init(tmpDirPath);
-        Directory.Delete(tmpDirPath, true);
+        Init(tmpDirPath, repo, tag);
     }
 
     /// <summary>
@@ -152,12 +155,24 @@ public class Nocker
     /// </summary>
     public void Images()
     {
-        Console.WriteLine("ImageId\t\tSource");
-        foreach (var img in Directory.GetDirectories(BtrfsPath).Where(f => f.StartsWith("img_")))
+        Console.WriteLine($"{"ImageId", -12}{"Repo", -26}Source");
+        foreach (var img in Directory.GetDirectories(BtrfsPath))
         {
-            var uuid = Path.GetDirectoryName(img);
+            var uuid = Path.GetFileName(img);
+            if (!uuid.StartsWith("img_"))
+            {
+                continue;
+            }
+            
             var imageSource = File.ReadAllText($"{BtrfsPath}/{uuid}/img.source");
-            Console.WriteLine($"{uuid}\t\t{imageSource}");
+            var sourceRepoPath = Path.Combine(imageSource, "img.source"); 
+            if (!File.Exists(sourceRepoPath))
+            {
+                continue;
+            }
+            
+            var imageSourceRepo = File.ReadAllText(sourceRepoPath);
+            Console.WriteLine($"{uuid, -12}{imageSourceRepo, -26}{imageSource}");
         }
     }
 
