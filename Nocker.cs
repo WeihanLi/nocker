@@ -15,7 +15,10 @@ public class Nocker
 
     private const string BtrfsPath = "/var/nocker", CGroups = "cpu,cpuacct,memory", TmpPath = "/tmp/nocker";
 
-    private static readonly HttpClient HttpClient = new();
+    private static readonly HttpClient HttpClient = new(new HttpClientHandler()
+    {
+        AutomaticDecompression = System.Net.DecompressionMethods.All
+    });
 
     public void Help()
     {
