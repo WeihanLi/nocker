@@ -8,12 +8,24 @@ using System.Net.Http.Json;
 using System.Reflection;
 using System.Text.Json.Nodes;
 
-public class Nocker
+public sealed class Nocker
 {
     internal static readonly MethodInfo[] Methods =
         typeof(Nocker).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
     private const string BtrfsPath = "/var/nocker", CGroups = "cpu,cpuacct,memory", TmpPath = "/tmp/nocker";
+
+    internal static void EnsureDirectoryCreated()
+    {
+        if (!Directory.Exists(BtrfsPath))
+        {
+            Directory.CreateDirectory(BtrfsPath);
+        }
+        if (!Directory.Exists(TmpPath))
+        {
+            Directory.CreateDirectory(TmpPath);
+        }
+    }
 
     private static readonly HttpClient HttpClient = new(new HttpClientHandler()
     {
@@ -103,6 +115,10 @@ public class Nocker
         using var getManifestResponse = await HttpClient.SendAsync(getManifestsRequest);
         var getManifestResponseObject = await getManifestResponse.Content.ReadFromJsonAsync<JsonObject>();
         ArgumentNullException.ThrowIfNull(getManifestResponse);
+        if (getManifestResponse.Headers.TryGetValues("Docker-Content-Digest", out var digestValues))
+        {
+            Console.WriteLine($"docker-content-digest: {digestValues.StringJoin(", ")}");
+        }
         
         var layers = getManifestResponseObject!["fsLayers"]!.AsArray()
             .Select(l => l!["blobSum"]!.GetValue<string>())
@@ -137,17 +153,21 @@ public class Nocker
     }
 
     /// <summary>
-    /// Delete an image or container: nocker rm container_id
+    /// Delete an image: nocker rmi image_id
     /// </summary>
-    /// <param name="containerId">container to remove</param>
-    public void Rm(string containerId)
+    /// <param name="imageId">image to remove</param>
+    public void Rmi(string imageId)
     {
-        if (!Check(containerId))
-            Console.WriteLine($"No container named {containerId} exists");
+        if (!Check(imageId))
+            Console.WriteLine($"No image named {imageId} exists");            
 
-        CommandExecutor.ExecuteCommand($"btrfs subvolume delete {BtrfsPath}/{containerId}");
-        CommandExecutor.ExecuteCommand($"cgdelete -g {CGroups}:/{containerId}");
-        Console.WriteLine($"Removed: {containerId}");
+        // CommandExecutor.ExecuteCommand($"btrfs subvolume delete {BtrfsPath}/{containerId}");        
+        // CommandExecutor.ExecuteCommand($"cgdelete -g {CGroups}:/{containerId}");
+
+        var storagePath = File.ReadAllText(Path.Combine(BtrfsPath, imageId, "img.source"));
+        Directory.Delete(storagePath, true);
+        Directory.Delete(Path.Combine(BtrfsPath, imageId));
+        Console.WriteLine($"Removed: {imageId}");
     }
 
     /// <summary>
@@ -155,7 +175,7 @@ public class Nocker
     /// </summary>
     public void Images()
     {
-        Console.WriteLine($"{"ImageId", -12}{"Repo", -26}Source");
+        Console.WriteLine($"{"ImageId", -10} {"Repo", -24} Source");
         foreach (var img in Directory.GetDirectories(BtrfsPath))
         {
             var uuid = Path.GetFileName(img);
@@ -172,7 +192,7 @@ public class Nocker
             }
             
             var imageSourceRepo = File.ReadAllText(sourceRepoPath);
-            Console.WriteLine($"{uuid, -12}{imageSourceRepo, -26}{imageSource}");
+            Console.WriteLine($"{uuid[4..], -10} {imageSourceRepo, -24} {imageSource}");
         }
     }
 
@@ -243,6 +263,20 @@ chroot {BtrfsPath}/{uuid}
 
         await CommandExecutor.ExecuteCommandAsync($"ip link del dev veth0_{uuid}");
         await CommandExecutor.ExecuteCommandAsync($"ip netns del netns_{uuid}");
+    }
+
+    /// <summary>
+    /// Delete an image or container: nocker rm container_id
+    /// </summary>
+    /// <param name="containerId">container to remove</param>
+    public void Rm(string containerId)
+    {
+        if (!Check(containerId))
+            Console.WriteLine($"No container named {containerId} exists");
+
+        CommandExecutor.ExecuteCommand($"btrfs subvolume delete {BtrfsPath}/{containerId}");
+        CommandExecutor.ExecuteCommand($"cgdelete -g {CGroups}:/{containerId}");
+        Console.WriteLine($"Removed: {containerId}");
     }
 
     public void Exec()

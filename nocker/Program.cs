@@ -22,6 +22,7 @@ if (method is null)
 
 try
 {
+    Nocker.EnsureDirectoryCreated();
     var result = method.Invoke(nocker, args[1..].Select(x => (object?)x).ToArray());
     await TaskHelper.ToTask(result);
     return 0;
