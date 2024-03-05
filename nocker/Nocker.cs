@@ -56,7 +56,8 @@ public sealed class Nocker
 
     public void Version()
     {
-        Console.WriteLine($"nocker: {typeof(Nocker).Assembly.GetName().Version!.ToString(3)}");
+        var libraryInfo = ApplicationHelper.GetLibraryInfo(typeof(Nocker));
+        Console.WriteLine($"nocker: {libraryInfo.LibraryVersion}+{libraryInfo.LibraryHash}");
     }
 
     private bool Check(string path)
@@ -114,7 +115,7 @@ public sealed class Nocker
         getManifestsRequest.SetBearerToken(token);
         using var getManifestResponse = await HttpClient.SendAsync(getManifestsRequest);
         var getManifestResponseObject = await getManifestResponse.Content.ReadFromJsonAsync<JsonObject>();
-        ArgumentNullException.ThrowIfNull(getManifestResponse);
+        ArgumentNullException.ThrowIfNull(getManifestResponseObject);
         if (getManifestResponse.Headers.TryGetValues("Docker-Content-Digest", out var digestValues))
         {
             Console.WriteLine($"docker-content-digest: {digestValues.StringJoin(", ")}");
@@ -277,6 +278,33 @@ chroot {BtrfsPath}/{uuid}
         CommandExecutor.ExecuteCommand($"btrfs subvolume delete {BtrfsPath}/{containerId}");
         CommandExecutor.ExecuteCommand($"cgdelete -g {CGroups}:/{containerId}");
         Console.WriteLine($"Removed: {containerId}");
+    }
+
+    /// <summary>
+    /// Build image from Dockerfile/Containerfile
+    /// </summary>
+    /// <param name="containerFile"></param>
+    /// <param name="tag"></param>
+    /// <param name="context"></param>
+    public void Build(string containerFile, string tag, string? context = null)
+    {
+    }
+    
+    /// <summary>
+    /// create new tag
+    /// </summary>
+    /// <param name="originalTag">originalTag</param>
+    /// <param name="newTag">newTag</param>
+    public void Tag(string originalTag, string newTag)
+    {
+    }
+    
+    /// <summary>
+    /// Push image
+    /// </summary>
+    /// <param name="imageTag">image tag to push</param>
+    public void Push(string imageTag)
+    {
     }
 
     public void Exec()
