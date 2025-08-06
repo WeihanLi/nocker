@@ -14,11 +14,12 @@
     <Product>nocker</Product>
     <Authors>WeihanLi</Authors>
     <PackageReleaseNotes>https://github.com/WeihanLi/nocker/tree/main/docs/ReleaseNotes.md</PackageReleaseNotes>
-    <Copyright>Copyright 2022-2024 (c) WeihanLi</Copyright>
+    <Copyright>Copyright 2022-202 5(c) WeihanLi</Copyright>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <!-- https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#treatwarningsaserrors -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
   </PropertyGroup>
   <ItemGroup Condition="'$(IsPackable)'=='true'">
     <None Include="$(MSBuildThisFileDirectory)icon.jpeg" Pack="true" Visible="false" PackagePath=""/>
