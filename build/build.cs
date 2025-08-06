@@ -12,12 +12,12 @@ Arguments:
 target: {{target}}
 stable: {{stable}}
 noPush: {{noPush}}
-args:   
+args:
 {{args.StringJoin("\n")}}
 
 """);
 
-var solutionPath = "./nocker.sln";
+var solutionPath = "./nocker.slnx";
 string[] srcProjects = ["./nocker/nocker.csproj"];
 string[] testProjects = [];
 
@@ -132,7 +132,7 @@ string? ArgumentInternal(string argumentName)
             return args[i + 1];
         }
 
-        if (args[i].StartsWith($"-{argumentName}=", StringComparison.Ordinal) 
+        if (args[i].StartsWith($"-{argumentName}=", StringComparison.Ordinal)
             || args[i].StartsWith($"-{argumentName}:", StringComparison.Ordinal))
             return args[i][$"-{argumentName}=".Length..];
 
